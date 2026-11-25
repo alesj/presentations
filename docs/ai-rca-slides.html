@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Root Cause Analysis – PR Slides</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+  }
+
+  .slide {
+    width: 100vw;
+    height: 100vh;
+    padding: 40px 56px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .slide-1 { background: linear-gradient(160deg, #0d1117 0%, #161b22 50%, #0d1117 100%); }
+  .slide-2 { background: linear-gradient(160deg, #161b22 0%, #0d1117 50%, #161b22 100%); }
+
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #58a6ff;
+    background: rgba(88,166,255,0.1);
+    padding: 4px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(88,166,255,0.25);
+    margin-bottom: 16px;
+    width: fit-content;
+  }
+
+  h1 {
+    font-size: 38px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+
+  h1 .hi { color: #58a6ff; }
+
+  .subtitle {
+    font-size: 16px;
+    color: #8b949e;
+    margin-bottom: 28px;
+    max-width: 900px;
+    line-height: 1.5;
+  }
+
+  .body {
+    display: flex;
+    flex: 1;
+    gap: 40px;
+    align-items: stretch;
+    min-height: 0;
+  }
+
+  .diagram-col {
+    flex: 1.3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(22,27,34,0.6);
+    border: 1px solid #30363d;
+    border-radius: 16px;
+    padding: 24px;
+  }
+
+  .diagram-col svg { width: 100%; height: auto; }
+
+  .bullets-col {
+    flex: 0.9;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+  }
+
+  .bullet {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    background: rgba(88,166,255,0.04);
+    border: 1px solid #21262d;
+    border-left: 3px solid #58a6ff;
+    border-radius: 10px;
+  }
+
+  .bullet-icon { font-size: 20px; flex-shrink: 0; line-height: 1.4; }
+  .bullet-text { font-size: 14px; line-height: 1.55; color: #c9d1d9; }
+  .bullet-text b { color: #fff; }
+
+  .foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #21262d;
+  }
+
+  .qr-box {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .qr-box img {
+    width: 90px;
+    height: 90px;
+    border-radius: 8px;
+    border: 2px solid #fff;
+    background: #fff;
+  }
+
+  .qr-info { font-size: 12px; color: #8b949e; }
+  .qr-info a { color: #58a6ff; text-decoration: none; font-weight: 600; font-size: 13px; }
+
+  .author { font-size: 12px; color: #8b949e; text-align: right; }
+  .author strong { color: #c9d1d9; }
+  .author a { color: #58a6ff; text-decoration: none; }
+
+  /* green accents for slide 2 */
+  .slide-2 .badge { color: #3fb950; background: rgba(63,185,80,0.1); border-color: rgba(63,185,80,0.25); }
+  .slide-2 .bullet { border-left-color: #3fb950; }
+
+  /* purple accents for slide 3 */
+  .slide-3 { background: linear-gradient(160deg, #0d1117 0%, #1a1626 50%, #0d1117 100%); }
+  .slide-3 .badge { color: #bc8cff; background: rgba(188,140,255,0.1); border-color: rgba(188,140,255,0.25); }
+  .slide-3 .bullet { border-left-color: #bc8cff; }
+  .slide-3 h1 .hi { color: #bc8cff; }
+</style>
+</head>
+<body>
+
+<!-- ===================== SLIDE 1 ===================== -->
+<div class="slide slide-1">
+  <div class="badge">Blog 1 of 3 &mdash; Introduction</div>
+  <h1><span class="hi">AI Root Cause Analysis</span></h1>
+  <p class="subtitle">An open-source Quarkus app that connects to your Grafana LGTM or Elastic stack via MCP, feeds correlated traces, logs &amp; metrics to an LLM, and returns actionable root-cause analysis in seconds.</p>
+
+  <div class="body">
+    <div class="diagram-col">
+      <!-- Architecture Diagram -->
+      <svg viewBox="0 0 700 370" xmlns="http://www.w3.org/2000/svg">
+        <style>
+          text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }
+        </style>
+        <defs>
+          <marker id="ar1" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#58a6ff"/>
+          </marker>
+          <marker id="ar2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#f0883e"/>
+          </marker>
+          <marker id="ar3" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#3fb950"/>
+          </marker>
+          <marker id="ar4" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#8b949e"/>
+          </marker>
+        </defs>
+
+        <!-- YOUR APPS -->
+        <rect x="8" y="60" width="120" height="120" rx="12" fill="#161b22" stroke="#58a6ff" stroke-width="2"/>
+        <text x="68" y="86" text-anchor="middle" fill="#58a6ff" font-size="13" font-weight="700">YOUR APPS</text>
+        <rect x="22" y="98" width="92" height="26" rx="6" fill="#0d1117" stroke="#30363d"/>
+        <text x="68" y="116" text-anchor="middle" fill="#c9d1d9" font-size="11">Service A</text>
+        <rect x="22" y="132" width="92" height="26" rx="6" fill="#0d1117" stroke="#30363d"/>
+        <text x="68" y="150" text-anchor="middle" fill="#c9d1d9" font-size="11">Service B</text>
+
+        <!-- Arrow: Apps → Stacks -->
+        <line x1="128" y1="120" x2="175" y2="120" stroke="#58a6ff" stroke-width="2" marker-end="url(#ar1)"/>
+        <text x="151" y="112" text-anchor="middle" fill="#8b949e" font-size="9">OTel</text>
+
+        <!-- Outer dashed "choose your backend" container -->
+        <rect x="180" y="6" width="150" height="250" rx="14" fill="none" stroke="#8b949e" stroke-width="1.2" stroke-dasharray="6"/>
+        <text x="255" y="22" text-anchor="middle" fill="#8b949e" font-size="9" font-style="italic">choose your backend</text>
+
+        <!-- LGTM STACK -->
+        <rect x="188" y="30" width="134" height="100" rx="10" fill="#161b22" stroke="#f0883e" stroke-width="2"/>
+        <text x="255" y="50" text-anchor="middle" fill="#f0883e" font-size="12" font-weight="700">LGTM</text>
+        <rect x="198" y="58" width="114" height="20" rx="5" fill="#0d1117" stroke="#30363d"/>
+        <text x="255" y="72" text-anchor="middle" fill="#ffa657" font-size="10">Tempo (traces)</text>
+        <rect x="198" y="82" width="114" height="20" rx="5" fill="#0d1117" stroke="#30363d"/>
+        <text x="255" y="96" text-anchor="middle" fill="#ffa657" font-size="10">Loki (logs)</text>
+        <rect x="198" y="106" width="114" height="20" rx="5" fill="#0d1117" stroke="#30363d"/>
+        <text x="255" y="120" text-anchor="middle" fill="#ffa657" font-size="10">Prometheus</text>
+
+        <!-- OR divider -->
+        <line x1="200" y1="142" x2="240" y2="142" stroke="#484f58" stroke-width="1"/>
+        <text x="255" y="146" text-anchor="middle" fill="#c9d1d9" font-size="11" font-weight="700">OR</text>
+        <line x1="270" y1="142" x2="310" y2="142" stroke="#484f58" stroke-width="1"/>
+
+        <!-- ELASTIC STACK -->
+        <rect x="188" y="154" width="134" height="94" rx="10" fill="#161b22" stroke="#00bcd4" stroke-width="2"/>
+        <text x="255" y="174" text-anchor="middle" fill="#00bcd4" font-size="12" font-weight="700">ELASTIC</text>
+        <rect x="198" y="182" width="114" height="20" rx="5" fill="#0d1117" stroke="#30363d"/>
+        <text x="255" y="196" text-anchor="middle" fill="#4dd0e1" font-size="10">Elasticsearch</text>
+        <rect x="198" y="206" width="54" height="20" rx="5" fill="#0d1117" stroke="#30363d"/>
+        <text x="225" y="220" text-anchor="middle" fill="#4dd0e1" font-size="10">Kibana</text>
+        <rect x="258" y="206" width="54" height="20" rx="5" fill="#0d1117" stroke="#30363d"/>
+        <text x="285" y="220" text-anchor="middle" fill="#4dd0e1" font-size="10">APM</text>
+
+        <!-- Arrow: Stacks → AI RCA -->
+        <line x1="330" y1="120" x2="385" y2="100" stroke="#58a6ff" stroke-width="2.5" marker-end="url(#ar1)"/>
+        <rect x="338" y="96" width="38" height="18" rx="4" fill="#0d1117" stroke="#58a6ff" stroke-width="1"/>
+        <text x="357" y="109" text-anchor="middle" fill="#58a6ff" font-size="10" font-weight="700">MCP</text>
+
+        <!-- AI RCA ENGINE (hero) -->
+        <rect x="390" y="18" width="170" height="165" rx="14" fill="#161b22" stroke="#58a6ff" stroke-width="2.5"/>
+        <text x="475" y="46" text-anchor="middle" fill="#fff" font-size="15" font-weight="700">AI RCA</text>
+        <text x="475" y="62" text-anchor="middle" fill="#8b949e" font-size="10">Quarkus Application</text>
+        <rect x="406" y="74" width="138" height="24" rx="6" fill="#0d1117" stroke="#30363d"/>
+        <text x="475" y="91" text-anchor="middle" fill="#79c0ff" font-size="10">StripMcpClient</text>
+        <rect x="406" y="104" width="138" height="24" rx="6" fill="#0d1117" stroke="#30363d"/>
+        <text x="475" y="121" text-anchor="middle" fill="#79c0ff" font-size="10">LangChain4j AI Service</text>
+        <rect x="406" y="134" width="138" height="24" rx="6" fill="#0d1117" stroke="#30363d"/>
+        <text x="475" y="151" text-anchor="middle" fill="#79c0ff" font-size="10">System Prompt (~290 LOC)</text>
+        <text x="475" y="175" text-anchor="middle" fill="#8b949e" font-size="9">OpenAI · Grok · Gemini · WatsonX</text>
+
+        <!-- Arrow: AI RCA → Output -->
+        <line x1="560" y1="100" x2="610" y2="100" stroke="#3fb950" stroke-width="2" marker-end="url(#ar3)"/>
+
+        <!-- OUTPUT REPORT -->
+        <rect x="615" y="30" width="78" height="140" rx="12" fill="#161b22" stroke="#3fb950" stroke-width="2"/>
+        <text x="654" y="58" text-anchor="middle" fill="#3fb950" font-size="13" font-weight="700">OUTPUT</text>
+        <text x="654" y="80" text-anchor="middle" fill="#7ee787" font-size="10">Root Causes</text>
+        <text x="654" y="98" text-anchor="middle" fill="#7ee787" font-size="10">Severity</text>
+        <text x="654" y="116" text-anchor="middle" fill="#7ee787" font-size="10">Remediation</text>
+        <text x="654" y="134" text-anchor="middle" fill="#7ee787" font-size="10">Correlation</text>
+        <text x="654" y="152" text-anchor="middle" fill="#7ee787" font-size="10">Dashboard</text>
+
+        <!-- Data Filtering callout -->
+        <rect x="175" y="270" width="390" height="46" rx="10" fill="#0d1117" stroke="#f0883e" stroke-width="1" stroke-dasharray="6"/>
+        <text x="370" y="292" text-anchor="middle" fill="#ffa657" font-size="11" font-weight="600">Smart Data Filtering</text>
+        <text x="370" y="308" text-anchor="middle" fill="#8b949e" font-size="10">586 metrics &#x2192; ~35  (94% noise reduction via StripMcpClient)</text>
+
+        <!-- Optional Dev MCP dashed path -->
+        <path d="M68 180 L68 350 L475 350 L475 183" stroke="#8b949e" stroke-width="1.2" stroke-dasharray="5" fill="none" marker-end="url(#ar4)"/>
+        <text x="270" y="344" text-anchor="middle" fill="#8b949e" font-size="9">Dev MCP (optional): source examination + dashboard generation</text>
+      </svg>
+    </div>
+
+    <div class="bullets-col">
+      <div class="bullet">
+        <span class="bullet-icon">&#x1F50D;</span>
+        <div class="bullet-text"><b>Multi-signal correlation</b><br>Traces + Logs + Metrics analyzed together, not in silos</div>
+      </div>
+      <div class="bullet">
+        <span class="bullet-icon">&#x26A1;</span>
+        <div class="bullet-text"><b>Seconds, not 30 minutes</b><br>Replaces manual dashboard-hopping with automated analysis</div>
+      </div>
+      <div class="bullet">
+        <span class="bullet-icon">&#x1F4E6;</span>
+        <div class="bullet-text"><b>Zero setup</b><br>Grab uber-jar from Maven Central, point at your LGTM stack, done</div>
+      </div>
+      <div class="bullet">
+        <span class="bullet-icon">&#x1F50C;</span>
+        <div class="bullet-text"><b>Multi-provider LLMs</b><br>OpenAI, Grok, Gemini, WatsonX via Quarkus profiles</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="qr-box">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Fquarkus.io%2Fblog%2Fai-root-cause-analysis%2F" alt="QR code to blog post 1"/>
+      <div class="qr-info">
+        Read the full blog:<br>
+        <a href="https://quarkus.io/blog/ai-root-cause-analysis/">quarkus.io/blog/ai-root-cause-analysis/</a>
+      </div>
+    </div>
+    <div class="author">
+      <strong>Ale&#353; Justin</strong> &bull; Quarkiverse<br>
+      <a href="https://github.com/quarkiverse/quarkus-ai-rca">github.com/quarkiverse/quarkus-ai-rca</a>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SLIDE 2 ===================== -->
+<div class="slide slide-2">
+  <div class="badge">Blog 2 of 3 &mdash; Deep Dive</div>
+  <h1><span class="hi">Architecture, Testing</span> &amp; Evaluation</h1>
+  <p class="subtitle">Chaos engineering + LLM-as-judge: how we validate AI analysis quality with 11 chaos types, Toxiproxy network faults, and cross-provider evaluation scoring.</p>
+
+  <div class="body">
+    <div class="diagram-col">
+      <!-- Testing Pipeline Diagram -->
+      <svg viewBox="0 0 700 370" xmlns="http://www.w3.org/2000/svg">
+        <style>
+          text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }
+        </style>
+        <defs>
+          <marker id="b1" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#f85149"/>
+          </marker>
+          <marker id="b2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#58a6ff"/>
+          </marker>
+          <marker id="b3" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#3fb950"/>
+          </marker>
+          <marker id="b4" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#f0883e"/>
+          </marker>
+        </defs>
+
+        <!-- Phase labels -->
+        <text x="80" y="18" text-anchor="middle" fill="#f85149" font-size="11" font-weight="700" letter-spacing="1.5">1 INJECT</text>
+        <text x="260" y="18" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="700" letter-spacing="1.5">2 OBSERVE</text>
+        <text x="440" y="18" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="700" letter-spacing="1.5">3 ANALYZE</text>
+        <text x="440" y="188" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="700" letter-spacing="1.5">4 EVALUATE</text>
+
+        <!-- CHAOS BOX -->
+        <rect x="8" y="30" width="145" height="155" rx="12" fill="#161b22" stroke="#f85149" stroke-width="2"/>
+        <text x="80" y="54" text-anchor="middle" fill="#f85149" font-size="14" font-weight="700">CHAOS</text>
+
+        <!-- Chaos type pills -->
+        <rect x="20" y="66" width="58" height="20" rx="5" fill="#0d1117" stroke="#f8514960"/><text x="49" y="80" text-anchor="middle" fill="#ffa198" font-size="9">delay</text>
+        <rect x="84" y="66" width="58" height="20" rx="5" fill="#0d1117" stroke="#f8514960"/><text x="113" y="80" text-anchor="middle" fill="#ffa198" font-size="9">memory</text>
+        <rect x="20" y="90" width="58" height="20" rx="5" fill="#0d1117" stroke="#f8514960"/><text x="49" y="104" text-anchor="middle" fill="#ffa198" font-size="9">cpu</text>
+        <rect x="84" y="90" width="58" height="20" rx="5" fill="#0d1117" stroke="#f8514960"/><text x="113" y="104" text-anchor="middle" fill="#ffa198" font-size="9">deadlock</text>
+        <rect x="20" y="114" width="58" height="20" rx="5" fill="#0d1117" stroke="#f8514960"/><text x="49" y="128" text-anchor="middle" fill="#ffa198" font-size="9">error</text>
+        <rect x="84" y="114" width="58" height="20" rx="5" fill="#0d1117" stroke="#f8514960"/><text x="113" y="128" text-anchor="middle" fill="#ffa198" font-size="9">leak</text>
+        <rect x="20" y="138" width="122" height="20" rx="5" fill="#0d1117" stroke="#f8514960"/><text x="81" y="152" text-anchor="middle" fill="#ffa198" font-size="9">+5 more types (11 total)</text>
+
+        <!-- TOXIPROXY -->
+        <rect x="8" y="200" width="145" height="58" rx="10" fill="#161b22" stroke="#f0883e" stroke-width="1.5"/>
+        <text x="80" y="222" text-anchor="middle" fill="#f0883e" font-size="12" font-weight="600">Toxiproxy</text>
+        <text x="80" y="238" text-anchor="middle" fill="#8b949e" font-size="9">DB latency &#xB7; Connection cuts</text>
+        <text x="80" y="250" text-anchor="middle" fill="#8b949e" font-size="9">API outages &#xB7; Throttling</text>
+
+        <!-- Arrow: Chaos → Apps -->
+        <line x1="153" y1="107" x2="193" y2="62" stroke="#f85149" stroke-width="2" marker-end="url(#b1)"/>
+        <!-- Arrow: Toxiproxy → Apps -->
+        <line x1="153" y1="225" x2="193" y2="80" stroke="#f0883e" stroke-width="1.5" stroke-dasharray="5" marker-end="url(#b4)"/>
+
+        <!-- TEST APPS -->
+        <rect x="198" y="30" width="124" height="62" rx="10" fill="#161b22" stroke="#58a6ff" stroke-width="1.5"/>
+        <text x="260" y="54" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="600">Test Apps</text>
+        <text x="260" y="70" text-anchor="middle" fill="#8b949e" font-size="8">OTel-instrumented Quarkus</text>
+        <text x="260" y="82" text-anchor="middle" fill="#8b949e" font-size="8">microservices</text>
+
+        <!-- Arrow: Apps → Stacks -->
+        <line x1="260" y1="92" x2="260" y2="108" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#b2)"/>
+
+        <!-- Dashed "choose your backend" container -->
+        <rect x="193" y="110" width="134" height="142" rx="10" fill="none" stroke="#8b949e" stroke-width="1" stroke-dasharray="5"/>
+
+        <!-- LGTM -->
+        <rect x="200" y="116" width="120" height="44" rx="8" fill="#161b22" stroke="#f0883e" stroke-width="1.5"/>
+        <text x="260" y="136" text-anchor="middle" fill="#f0883e" font-size="11" font-weight="600">LGTM</text>
+        <text x="260" y="152" text-anchor="middle" fill="#8b949e" font-size="8">Tempo &#xB7; Loki &#xB7; Prometheus</text>
+
+        <!-- OR divider -->
+        <line x1="208" y1="172" x2="244" y2="172" stroke="#484f58" stroke-width="1"/>
+        <text x="260" y="176" text-anchor="middle" fill="#c9d1d9" font-size="10" font-weight="700">OR</text>
+        <line x1="276" y1="172" x2="312" y2="172" stroke="#484f58" stroke-width="1"/>
+
+        <!-- ELASTIC -->
+        <rect x="200" y="184" width="120" height="44" rx="8" fill="#161b22" stroke="#00bcd4" stroke-width="1.5"/>
+        <text x="260" y="204" text-anchor="middle" fill="#00bcd4" font-size="11" font-weight="600">ELASTIC</text>
+        <text x="260" y="220" text-anchor="middle" fill="#8b949e" font-size="8">ES &#xB7; Kibana &#xB7; APM</text>
+
+        <!-- Arrow: Stacks → AI RCA -->
+        <line x1="327" y1="180" x2="372" y2="107" stroke="#58a6ff" stroke-width="2" marker-end="url(#b2)"/>
+
+        <!-- AI RCA ANALYZER -->
+        <rect x="378" y="30" width="145" height="145" rx="12" fill="#161b22" stroke="#58a6ff" stroke-width="2.5"/>
+        <text x="450" y="56" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">AI RCA</text>
+        <text x="450" y="74" text-anchor="middle" fill="#79c0ff" font-size="11">Analyzer LLM</text>
+        <rect x="394" y="86" width="113" height="22" rx="5" fill="#0d1117" stroke="#30363d"/>
+        <text x="450" y="101" text-anchor="middle" fill="#c9d1d9" font-size="10">OpenAI (gpt-4o)</text>
+        <rect x="394" y="114" width="113" height="22" rx="5" fill="#0d1117" stroke="#30363d"/>
+        <text x="450" y="129" text-anchor="middle" fill="#c9d1d9" font-size="10">Grok (grok-3-mini)</text>
+        <text x="450" y="153" text-anchor="middle" fill="#8b949e" font-size="9">analysis output &#8595;</text>
+        <text x="450" y="168" text-anchor="middle" fill="#8b949e" font-size="8">backend-agnostic pipeline</text>
+
+        <!-- Arrow: AI → Judge -->
+        <line x1="450" y1="175" x2="450" y2="195" stroke="#3fb950" stroke-width="2.5" marker-end="url(#b3)"/>
+
+        <!-- LLM JUDGE -->
+        <rect x="378" y="200" width="145" height="88" rx="12" fill="#161b22" stroke="#3fb950" stroke-width="2.5"/>
+        <text x="450" y="226" text-anchor="middle" fill="#3fb950" font-size="14" font-weight="700">LLM Judge</text>
+        <text x="450" y="244" text-anchor="middle" fill="#7ee787" font-size="10">Different provider!</text>
+        <text x="450" y="260" text-anchor="middle" fill="#8b949e" font-size="9">Cross-provider scoring</text>
+        <text x="450" y="278" text-anchor="middle" fill="#8b949e" font-size="9">eliminates self-eval bias</text>
+
+        <!-- Arrow: Judge → Score -->
+        <line x1="523" y1="244" x2="568" y2="244" stroke="#3fb950" stroke-width="2" marker-end="url(#b3)"/>
+
+        <!-- SCORE CARD -->
+        <rect x="573" y="195" width="118" height="102" rx="12" fill="#161b22" stroke="#3fb950" stroke-width="2"/>
+        <text x="632" y="220" text-anchor="middle" fill="#3fb950" font-size="13" font-weight="700">SCORE /100</text>
+        <text x="632" y="240" text-anchor="middle" fill="#7ee787" font-size="10">Completeness (25)</text>
+        <text x="632" y="256" text-anchor="middle" fill="#7ee787" font-size="10">Accuracy (25)</text>
+        <text x="632" y="272" text-anchor="middle" fill="#7ee787" font-size="10">Correlation (25)</text>
+        <text x="632" y="288" text-anchor="middle" fill="#7ee787" font-size="10">Actionability (25)</text>
+
+        <!-- Results bar at bottom -->
+        <rect x="378" y="330" width="313" height="30" rx="8" fill="#0d1117" stroke="#3fb950" stroke-width="1.5"/>
+        <text x="534" y="350" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="700">19/19 scenarios pass across all provider combos</text>
+      </svg>
+    </div>
+
+    <div class="bullets-col">
+      <div class="bullet">
+        <span class="bullet-icon">&#x1F4A5;</span>
+        <div class="bullet-text"><b>11 chaos failure modes</b><br>delay, memory, cpu, leak, error, deadlock, threadpool, contention, GC, intermittent, exception</div>
+      </div>
+      <div class="bullet">
+        <span class="bullet-icon">&#x1F310;</span>
+        <div class="bullet-text"><b>Toxiproxy network faults</b><br>DB chaos (slow queries, pool exhaustion) + Weather API outages at the TCP layer</div>
+      </div>
+      <div class="bullet">
+        <span class="bullet-icon">&#x2696;&#xFE0F;</span>
+        <div class="bullet-text"><b>LLM-as-judge evaluation</b><br>Separate LLM scores analysis on 4 dimensions (25 pts each). Threshold: 70/100</div>
+      </div>
+      <div class="bullet">
+        <span class="bullet-icon">&#x1F504;</span>
+        <div class="bullet-text"><b>Cross-provider scoring</b><br>AI=OpenAI + Judge=Grok (and vice versa) prevents self-evaluation bias</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="qr-box">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Fquarkus.io%2Fblog%2Fai-root-cause-analysis-deep-dive%2F" alt="QR code to blog post 2"/>
+      <div class="qr-info">
+        Read the full blog:<br>
+        <a href="https://quarkus.io/blog/ai-root-cause-analysis-deep-dive/">quarkus.io/blog/ai-root-cause-analysis-deep-dive/</a>
+      </div>
+    </div>
+    <div class="author">
+      <strong>Ale&#353; Justin</strong> &bull; Quarkiverse<br>
+      <a href="https://github.com/quarkiverse/quarkus-ai-rca">github.com/quarkiverse/quarkus-ai-rca</a>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SLIDE 3 ===================== -->
+<div class="slide slide-3">
+  <div class="badge">Slide 3 of 3 &mdash; Coming Soon</div>
+  <h1><span class="hi">ObservabilityPlatform SPI</span><br>Plug In Your Own Backend</h1>
+  <p class="subtitle">A clean SPI lets you implement any observability backend (Datadog, New Relic, ...) while the AI pipeline, system prompt, and entire test harness stay unchanged.</p>
+
+  <div class="body">
+    <div class="diagram-col">
+      <!-- SPI Architecture Diagram -->
+      <svg viewBox="0 0 700 370" xmlns="http://www.w3.org/2000/svg">
+        <style>
+          text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }
+        </style>
+        <defs>
+          <marker id="c1" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#bc8cff"/>
+          </marker>
+          <marker id="c2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#58a6ff"/>
+          </marker>
+          <marker id="c3" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#3fb950"/>
+          </marker>
+          <marker id="c4" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#8b949e"/>
+          </marker>
+        </defs>
+
+        <!-- ==================== LEFT: Platform Implementations ==================== -->
+        <text x="90" y="18" text-anchor="middle" fill="#8b949e" font-size="10" font-weight="700" letter-spacing="1.5">IMPLEMENTATIONS</text>
+
+        <!-- LGTM module -->
+        <rect x="8" y="30" width="165" height="82" rx="10" fill="#161b22" stroke="#f0883e" stroke-width="2"/>
+        <text x="90" y="52" text-anchor="middle" fill="#f0883e" font-size="12" font-weight="700">lgtm/</text>
+        <text x="90" y="68" text-anchor="middle" fill="#ffa657" font-size="10">LgtmPlatform</text>
+        <rect x="18" y="76" width="68" height="16" rx="4" fill="#0d1117" stroke="#30363d"/>
+        <text x="52" y="88" text-anchor="middle" fill="#8b949e" font-size="8">Tempo MCP</text>
+        <rect x="92" y="76" width="72" height="16" rx="4" fill="#0d1117" stroke="#30363d"/>
+        <text x="128" y="88" text-anchor="middle" fill="#8b949e" font-size="8">Grafana MCP</text>
+        <text x="90" y="106" text-anchor="middle" fill="#484f58" font-size="8">lgtm-prompt.txt &#xB7; LgtmStripFunctions</text>
+
+        <!-- Elastic module -->
+        <rect x="8" y="124" width="165" height="82" rx="10" fill="#161b22" stroke="#00bcd4" stroke-width="2"/>
+        <text x="90" y="146" text-anchor="middle" fill="#00bcd4" font-size="12" font-weight="700">elastic/</text>
+        <text x="90" y="162" text-anchor="middle" fill="#4dd0e1" font-size="10">ElasticPlatform</text>
+        <rect x="38" y="170" width="105" height="16" rx="4" fill="#0d1117" stroke="#30363d"/>
+        <text x="90" y="182" text-anchor="middle" fill="#8b949e" font-size="8">Kibana MCP (ES|QL)</text>
+        <text x="90" y="200" text-anchor="middle" fill="#484f58" font-size="8">elastic-prompt.txt &#xB7; ElasticStripFunctions</text>
+
+        <!-- Your Platform (dashed, extensibility) -->
+        <rect x="8" y="218" width="165" height="68" rx="10" fill="none" stroke="#bc8cff" stroke-width="2" stroke-dasharray="6"/>
+        <text x="90" y="242" text-anchor="middle" fill="#bc8cff" font-size="12" font-weight="700">your-platform/</text>
+        <text x="90" y="260" text-anchor="middle" fill="#d2b3ff" font-size="10">YourPlatform implements SPI</text>
+        <text x="90" y="276" text-anchor="middle" fill="#484f58" font-size="8">Datadog? New Relic? Dynatrace?</text>
+
+        <!-- "implements" arrows from all 3 to SPI -->
+        <line x1="173" y1="70" x2="248" y2="130" stroke="#bc8cff" stroke-width="1.5" marker-end="url(#c1)"/>
+        <line x1="173" y1="164" x2="248" y2="150" stroke="#bc8cff" stroke-width="1.5" marker-end="url(#c1)"/>
+        <line x1="173" y1="252" x2="248" y2="170" stroke="#bc8cff" stroke-width="1.5" stroke-dasharray="5" marker-end="url(#c1)"/>
+
+        <!-- ==================== CENTER: SPI Interface ==================== -->
+
+        <!-- SPI Interface (hero) -->
+        <rect x="253" y="70" width="175" height="150" rx="14" fill="#1a1626" stroke="#bc8cff" stroke-width="2.5"/>
+        <text x="340" y="94" text-anchor="middle" fill="#bc8cff" font-size="13" font-weight="700">ObservabilityPlatform</text>
+        <text x="340" y="110" text-anchor="middle" fill="#8b949e" font-size="9">common/ module &mdash; SPI interface</text>
+
+        <rect x="265" y="118" width="150" height="16" rx="4" fill="#0d1117" stroke="#bc8cff40"/>
+        <text x="340" y="130" text-anchor="middle" fill="#d2b3ff" font-size="9">platformName()</text>
+        <rect x="265" y="138" width="150" height="16" rx="4" fill="#0d1117" stroke="#bc8cff40"/>
+        <text x="340" y="150" text-anchor="middle" fill="#d2b3ff" font-size="9">searchTraces(count)</text>
+        <rect x="265" y="158" width="150" height="16" rx="4" fill="#0d1117" stroke="#bc8cff40"/>
+        <text x="340" y="170" text-anchor="middle" fill="#d2b3ff" font-size="9">getTrace(id) &#xB7; getLogsForTrace(id)</text>
+        <rect x="265" y="178" width="150" height="16" rx="4" fill="#0d1117" stroke="#bc8cff40"/>
+        <text x="340" y="190" text-anchor="middle" fill="#d2b3ff" font-size="9">getMetrics(datetime)</text>
+        <rect x="265" y="198" width="150" height="16" rx="4" fill="#0d1117" stroke="#bc8cff40"/>
+        <text x="340" y="210" text-anchor="middle" fill="#d2b3ff" font-size="9">promptFragment()</text>
+
+        <!-- CDI label -->
+        <rect x="295" y="230" width="90" height="20" rx="6" fill="rgba(188,140,255,0.1)" stroke="#bc8cff" stroke-width="1"/>
+        <text x="340" y="244" text-anchor="middle" fill="#bc8cff" font-size="9" font-weight="600">CDI @Inject</text>
+
+        <!-- Arrow: SPI → AI Pipeline -->
+        <line x1="428" y1="150" x2="478" y2="150" stroke="#58a6ff" stroke-width="2.5" marker-end="url(#c2)"/>
+
+        <!-- ==================== RIGHT: AI Pipeline + Tests ==================== -->
+        <text x="575" y="18" text-anchor="middle" fill="#58a6ff" font-size="10" font-weight="700" letter-spacing="1.5">BACKEND-AGNOSTIC</text>
+
+        <!-- AI Pipeline box -->
+        <rect x="483" y="30" width="210" height="142" rx="12" fill="#161b22" stroke="#58a6ff" stroke-width="2"/>
+        <text x="588" y="52" text-anchor="middle" fill="#58a6ff" font-size="12" font-weight="700">ai/ module (core)</text>
+        <text x="588" y="68" text-anchor="middle" fill="#8b949e" font-size="9">Backend-agnostic pipeline</text>
+
+        <rect x="496" y="78" width="184" height="20" rx="5" fill="#0d1117" stroke="#30363d"/>
+        <text x="588" y="92" text-anchor="middle" fill="#79c0ff" font-size="10">PlainTools &#x2192; injects ObservabilityPlatform</text>
+        <rect x="496" y="104" width="184" height="20" rx="5" fill="#0d1117" stroke="#30363d"/>
+        <text x="588" y="118" text-anchor="middle" fill="#79c0ff" font-size="10">RcaAiService (@ToolBox)</text>
+        <rect x="496" y="130" width="184" height="20" rx="5" fill="#0d1117" stroke="#30363d"/>
+        <text x="588" y="144" text-anchor="middle" fill="#79c0ff" font-size="10">base.txt + platform promptFragment()</text>
+        <text x="588" y="166" text-anchor="middle" fill="#8b949e" font-size="8">LangChain4j &#xB7; StripMcpClient &#xB7; System Prompt</text>
+
+        <!-- Test Harness box -->
+        <rect x="483" y="192" width="210" height="96" rx="12" fill="#161b22" stroke="#3fb950" stroke-width="2"/>
+        <text x="588" y="214" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="700">Test Harness</text>
+        <text x="588" y="230" text-anchor="middle" fill="#8b949e" font-size="9">Same tests for ALL platforms</text>
+        <rect x="496" y="240" width="90" height="18" rx="4" fill="#0d1117" stroke="#30363d"/>
+        <text x="541" y="253" text-anchor="middle" fill="#7ee787" font-size="8">ChaosTest</text>
+        <rect x="592" y="240" width="90" height="18" rx="4" fill="#0d1117" stroke="#30363d"/>
+        <text x="637" y="253" text-anchor="middle" fill="#7ee787" font-size="8">DbTest</text>
+        <rect x="496" y="262" width="90" height="18" rx="4" fill="#0d1117" stroke="#30363d"/>
+        <text x="541" y="275" text-anchor="middle" fill="#7ee787" font-size="8">WeatherTest</text>
+        <rect x="592" y="262" width="90" height="18" rx="4" fill="#0d1117" stroke="#30363d"/>
+        <text x="637" y="275" text-anchor="middle" fill="#7ee787" font-size="8">LLM Judge</text>
+
+        <!-- Arrow: AI → Tests -->
+        <line x1="588" y1="172" x2="588" y2="192" stroke="#3fb950" stroke-width="1.5" marker-end="url(#c3)"/>
+
+        <!-- ==================== BOTTOM: Maven selection ==================== -->
+        <rect x="175" y="310" width="510" height="48" rx="10" fill="#0d1117" stroke="#bc8cff" stroke-width="1.5"/>
+        <text x="430" y="330" text-anchor="middle" fill="#bc8cff" font-size="11" font-weight="600">Platform selection at build time via Maven profile</text>
+        <text x="430" y="348" text-anchor="middle" fill="#8b949e" font-size="10">-Dobservability.platform=lgtm  |  -Dobservability.platform=elastic  |  -Dobservability.platform=yours</text>
+      </svg>
+    </div>
+
+    <div class="bullets-col">
+      <div class="bullet">
+        <span class="bullet-icon">&#x1F9E9;</span>
+        <div class="bullet-text"><b>6-method SPI contract</b><br>searchTraces, getTrace, getLogs, getMetrics, getStartTime, promptFragment</div>
+      </div>
+      <div class="bullet">
+        <span class="bullet-icon">&#x1F4E6;</span>
+        <div class="bullet-text"><b>One module per platform</b><br>Each brings: SPI impl, MCP config, strip functions, prompt fragment</div>
+      </div>
+      <div class="bullet">
+        <span class="bullet-icon">&#x2705;</span>
+        <div class="bullet-text"><b>Test harness stays identical</b><br>19 scenarios (chaos + DB + weather) run against any platform via Maven profile switch</div>
+      </div>
+      <div class="bullet">
+        <span class="bullet-icon">&#x1F50C;</span>
+        <div class="bullet-text"><b>Add your own backend</b><br>Implement the interface, add prompt fragment, wire MCP &mdash; all tests pass automatically</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="qr-box">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Fgithub.com%2Fquarkiverse%2Fquarkus-ai-rca" alt="QR code to GitHub repo"/>
+      <div class="qr-info">
+        Source code &amp; SPI docs:<br>
+        <a href="https://github.com/quarkiverse/quarkus-ai-rca">github.com/quarkiverse/quarkus-ai-rca</a>
+      </div>
+    </div>
+    <div class="author">
+      <strong>Ale&#353; Justin</strong> &bull; Quarkiverse<br>
+      <span style="color:#bc8cff;font-size:12px;">Blog post coming soon!</span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
